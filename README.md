@@ -1,11 +1,28 @@
-<div align="center">
+# Physical AI & Humanoid Robotics: From Simulation to Real-World Autonomy
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+## 🚀 Project Overview
+**Physical AI & Humanoid Robotics** is a futuristic, interactive educational platform designed to bridge the gap between digital AI (LLMs, vision models) and physical embodied intelligence. Unlike static PDF textbooks or fragmented video tutorials, this platform offers a structured, module-based learning experience wrapped in a high-fidelity 3D aesthetic.
 
-  <h1>Built with AI Studio</h2>
+This project serves as a comprehensive guide for engineers, students, and hobbyists looking to build, simulate, and control autonomous humanoid robots using industry-standard tools like ROS 2, NVIDIA Isaac Sim, and Python.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## 🎯 The Problem
+Learning humanoid robotics is currently disjointed. Resources are scattered across academic papers, dense documentation, and isolated forums. There is no single "textbook" that takes a learner from basic kinematics to deploying a Vision-Language-Action (VLA) model on a robot.
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+## 💡 The Solution
+A unified "Living Book" platform that combines:
+1.  **Structured Curriculum:** From ROS 2 basics to reinforcement learning.
+2.  **Interactive UI:** A glassmorphism-based, futuristic interface that feels like the software of the future.
+3.  **AI Companionship:** An integrated AI chatbot to answer context-specific technical questions.
+4.  **Accessibility:** Built-in multilingual support (English/Urdu) and personalization options.
 
-</div>
+## 🛠️ Technology Stack
+*   **Frontend:** React (SPA), Tailwind CSS
+*   **Design:** Glassmorphism, 3D-style UI, Lucide Icons
+*   **AI Integration:** Google Gemini API (Placeholder for RAG chatbot)
+*   **Routing:** React Router
+
+## 🏆 Hackathon Context
+This project was built as a submission for a technical hackathon, focusing on User Experience (UX), educational accessibility, and the integration of AI into learning platforms.
+
+---
+*© Physical AI & Humanoid Robotics Team*
