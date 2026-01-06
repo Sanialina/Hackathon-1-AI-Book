@@ -20,11 +20,266 @@ import {
   Activity,
   ArrowRight,
   Send,
-  Sparkles
+  Sparkles,
+  CheckCircle2
 } from 'lucide-react';
 import { HashRouter, Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 import { BOOK_MODULES } from './constants';
 import { User, Chapter } from './types';
+
+// --- Content Data ---
+
+const CHAPTER_CONTENT: Record<string, { summary: string; sections: { title: string; content: React.ReactNode }[]; takeaways: string[] }> = {
+  // Module 1: Foundations
+  'c1': {
+    summary: "Physical AI represents the merger of artificial intelligence with physical bodies. This chapter defines embodied intelligence and how it differs from pure digital AI.",
+    sections: [
+      {
+        title: "What is Physical AI?",
+        content: <p>Physical AI refers to AI systems that possess a physical form—robots. Unlike chatbots (Digital AI) that live on servers and process text, Physical AI agents must navigate, touch, and manipulate the real world. They deal with gravity, friction, and unpredictable environments.</p>
+      },
+      {
+        title: "Digital vs. Embodied Intelligence",
+        content: <p>Digital AI, like a chess engine, operates in a world of perfect information. Embodied AI operates in the real world, where sensors are noisy and motors aren't perfect. A robot learns about the world not just by reading data, but by interacting with it—pushing objects, bumping into walls, and picking things up.</p>
+      }
+    ],
+    takeaways: ["Physical AI acts on the physical world.", "Digital AI processes data; Embodied AI processes reality.", "Physics is the ultimate constraint."]
+  },
+  'c2': {
+    summary: "Robots need to sense the world to interact with it. We explore how sensors act as the eyes and ears of an autonomous machine.",
+    sections: [
+      {
+        title: "Sensors vs. Perception",
+        content: <p>A 'sensor' is the hardware (like a camera lens). 'Perception' is the software intelligence that understands what the sensor is seeing. For example, a camera captures pixels (sensing), but an AI model recognizes a 'cat' in those pixels (perception).</p>
+      },
+      {
+        title: "Types of Robot Senses",
+        content: <ul className="list-disc pl-5 space-y-2 mt-2"><li><strong>Exteroception:</strong> Sensing the outside world (Cameras, Lidar, Microphones).</li><li><strong>Proprioception:</strong> Sensing the internal state (Motor encoders, IMUs, Battery levels).</li></ul>
+      }
+    ],
+    takeaways: ["Sensors provide raw data; Perception provides meaning.", "Proprioception allows the robot to know its own body position.", "Lidar and Cameras are the primary vision sensors."]
+  },
+
+  // Module 2: ROS 2
+  'c3': {
+    summary: "The Robot Operating System (ROS 2) is the industry standard middleware. It acts as the nervous system, connecting sensors to the brain and actuators.",
+    sections: [
+      {
+        title: "What is ROS 2?",
+        content: <p>ROS 2 isn't an actual operating system like Windows; it's a set of software libraries that help different parts of a robot talk to each other. It handles the difficult work of passing messages between a camera driver and a motor controller.</p>
+      },
+      {
+        title: "Nodes and Topics",
+        content: <p>Think of <strong>Nodes</strong> as individual brain cells or programs. One node reads the camera, another controls the wheels. They communicate via <strong>Topics</strong>. The camera node 'publishes' images to a topic, and the wheel node 'subscribes' to it to see where to go.</p>
+      }
+    ],
+    takeaways: ["ROS 2 is the 'plumbing' of robotics software.", "Nodes are individual processes.", "Topics allow nodes to share data."]
+  },
+  'c4': {
+    summary: "We can control complex robots using simple Python scripts. This chapter bridges the gap between code and movement.",
+    sections: [
+      {
+        title: "The Control Loop",
+        content: <p>Robots run on loops. A typical control script reads sensor data, calculates a decision, and sends a motor command—dozens of times per second. In Python, we use libraries like `rclpy` to interface with ROS 2 seamlessly.</p>
+      },
+      {
+        title: "Sending Velocity Commands",
+        content: <p>The most basic command is a `Twist` message. It tells the robot two things: linear velocity (speed forward) and angular velocity (speed of turning). By adjusting these two numbers, we can drive a robot anywhere.</p>
+      }
+    ],
+    takeaways: ["Python is the primary language for high-level robot logic.", "Control loops run continuously.", "Velocity commands drive the robot base."]
+  },
+  'c5': {
+    summary: "Before a robot can move, it must know its own shape. URDF (Unified Robot Description Format) is the XML language used to describe robot bodies.",
+    sections: [
+      {
+        title: "Why Describe a Robot?",
+        content: <p>The software needs to know how long the robot's arm is, where the wheels are, and how heavy the chassis is. Without this 'self-model', the robot cannot plan movements without hitting itself.</p>
+      },
+      {
+        title: "Links and Joints",
+        content: <p>A robot description is made of <strong>Links</strong> (the rigid parts, like bones) and <strong>Joints</strong> (the moving parts, like motors). These are defined in a tree structure, starting from the base of the robot.</p>
+      }
+    ],
+    takeaways: ["URDF is an XML file describing the robot.", "Links are rigid bodies; Joints are movable connections.", "The TF (Transform) tree tracks where every part is in 3D space."]
+  },
+
+  // Module 3: Simulation
+  'c6': {
+    summary: "A Digital Twin is a virtual replica of a physical system. It allows us to test, crash, and learn without breaking expensive hardware.",
+    sections: [
+      {
+        title: "The Concept of the Digital Twin",
+        content: <p>In robotics, we build the robot in the computer first. This digital twin has the exact same dimensions, sensors, and code interfaces as the real robot. If the code works on the twin, it should work on the real machine.</p>
+      },
+      {
+        title: "Benefits of Simulation",
+        content: <p>Simulation allows for rapid testing. You can run a robot for 10,000 hours in a simulation overnight, creating scenarios (like rain or hardware failure) that are dangerous to test in reality.</p>
+      }
+    ],
+    takeaways: ["Digital Twins save money and time.", "We can test dangerous edge cases safely.", "Simulation is a prerequisite for modern robotics."]
+  },
+  'c7': {
+    summary: "Gazebo is the classic simulator for ROS. It provides a physics engine to simulate gravity, collisions, and friction.",
+    sections: [
+      {
+        title: "What is Gazebo?",
+        content: <p>Gazebo is a 3D environment that integrates tightly with ROS. It simulates the laws of physics. When you send a motor command in Gazebo, it calculates the torque, friction against the floor, and the resulting movement, just like the real world.</p>
+      },
+      {
+        title: "Simulating Sensors",
+        content: <p>Gazebo can also simulate sensors. It generates fake camera feeds and Lidar scans based on the virtual world, feeding them into your robot code as if they were real.</p>
+      }
+    ],
+    takeaways: ["Gazebo simulates physics and sensors.", "It integrates natively with ROS.", "It is the standard tool for testing robot logic."]
+  },
+  'c8': {
+    summary: "For complex human-robot interaction, we need better graphics. Unity provides high-fidelity visuals and advanced physics for next-gen simulation.",
+    sections: [
+      {
+        title: "Why Unity?",
+        content: <p>While Gazebo is great for physics, Unity (a game engine) offers photorealistic graphics. This is crucial for training AI vision models, which need to recognize objects that look like the real world.</p>
+      },
+      {
+        title: "The Sim2Real Gap",
+        content: <p>The better the simulation looks (High Fidelity), the easier it is to transfer the AI brain to the real robot. Unity helps bridge this gap by providing realistic lighting, textures, and shadows.</p>
+      }
+    ],
+    takeaways: ["Unity offers photorealistic simulation.", "Better visuals help train Computer Vision models.", "Game engines are becoming robotics tools."]
+  },
+
+  // Module 4: AI Brain
+  'c9': {
+    summary: "NVIDIA Isaac is a powerful platform designed for robotics simulation and AI. It leverages GPU power to run massive simulations.",
+    sections: [
+      {
+        title: "The Isaac Ecosystem",
+        content: <p>NVIDIA Isaac Sim is built on 'Omniverse', allowing for physically accurate and photorealistic worlds. It can simulate thousands of robots simultaneously to train AI brains faster than real-time.</p>
+      },
+      {
+        title: "GPU Acceleration",
+        content: <p>Traditional simulators run on the CPU. Isaac runs on the GPU, which is designed for parallel processing. This allows for complex physics (like deformable objects or fluids) that were previously impossible.</p>
+      }
+    ],
+    takeaways: ["Isaac Sim runs on GPUs for speed.", "It supports massive parallel training.", "It integrates with NVIDIA's AI hardware."]
+  },
+  'c10': {
+    summary: "Perception is the act of making sense of sensor data. Isaac ROS provides hardware-accelerated modules for vision and depth.",
+    sections: [
+      {
+        title: "Robot Vision Pipeline",
+        content: <p>The pipeline starts with a raw image. First, we remove noise. Then, we use AI models to detect objects (chairs, people). Finally, we determine where those objects are in 3D space relative to the robot.</p>
+      },
+      {
+        title: "VSLAM (Visual SLAM)",
+        content: <p>Visual Simultaneous Localization and Mapping (VSLAM) uses cameras to build a map of the room while simultaneously figuring out where the robot is within that map. It is a critical skill for autonomy.</p>
+      }
+    ],
+    takeaways: ["Perception turns pixels into understanding.", "VSLAM builds maps using eyes (cameras).", "Hardware acceleration is needed for real-time vision."]
+  },
+  'c11': {
+    summary: "Navigation 2 (Nav2) is the standard ROS 2 library for moving mobile robots. It handles path planning and obstacle avoidance.",
+    sections: [
+      {
+        title: "Global vs. Local Planning",
+        content: <p>Navigation happens in two layers. The <strong>Global Planner</strong> looks at the full map to find a route from A to B (like Google Maps). The <strong>Local Planner</strong> avoids immediate obstacles (like a walking person) while following that route.</p>
+      },
+      {
+        title: "Costmaps",
+        content: <p>A costmap is a grid where every square has a 'safety cost'. Walls have high cost (danger). Open space has low cost. The robot always tries to follow the path of lowest cost.</p>
+      }
+    ],
+    takeaways: ["Nav2 manages movement from A to B.", "Global planners find the route; Local planners avoid crashes.", "Costmaps represent safe and dangerous areas."]
+  },
+  'c12': {
+    summary: "Reinforcement Learning (RL) allows robots to learn skills by trial and error, rather than being explicitly programmed.",
+    sections: [
+      {
+        title: "Learning to Walk",
+        content: <p>Programming a humanoid to walk manually is incredibly hard. With RL, we give the robot a 'reward' for moving forward and standing up, and a 'penalty' for falling. After millions of tries in simulation, it figures out how to walk on its own.</p>
+      },
+      {
+        title: "The Agent and Environment",
+        content: <p>In RL, the robot is the <strong>Agent</strong>. The world is the <strong>Environment</strong>. The agent takes an <strong>Action</strong>, and the environment returns a new State and a Reward.</p>
+      }
+    ],
+    takeaways: ["RL learns through rewards and penalties.", "It is essential for complex motor skills like walking.", "Training happens in simulation to save time."]
+  },
+
+  // Module 5: VLA
+  'c13': {
+    summary: "Vision-Language-Action (VLA) models represent the cutting edge of robotics. They allow robots to understand natural language and visual inputs simultaneously.",
+    sections: [
+      {
+        title: "Seeing and Understanding",
+        content: <p>Traditional robots need strict code. VLA models (like Google's RT-2) can look at a messy table and understand a command like 'Pick up the apple'. They combine the visual recognition of an apple with the language concept of 'picking up'.</p>
+      },
+      {
+        title: "Generalization",
+        content: <p>The power of VLA is generalization. If a robot knows how to pick up an apple, a VLA model allows it to try picking up an orange, even if it has never been explicitly programmed for oranges.</p>
+      }
+    ],
+    takeaways: ["VLA combines vision, language, and robot control.", "It allows for natural language commands.", "It enables generalization to new objects."]
+  },
+  'c14': {
+    summary: "Voice-to-Action systems allow us to speak to robots. We convert audio into structured data that the robot's code can execute.",
+    sections: [
+      {
+        title: "The Voice Pipeline",
+        content: <p>First, we use a model like Whisper to convert Audio to Text. Then, we use an LLM to extract the 'Intent' (what the user wants) and 'Parameters' (which object, which location). Finally, this is converted to a JSON command for the robot.</p>
+      },
+      {
+        title: "From Speech to JSON",
+        content: <p>A user says 'Go to the kitchen'. The system converts this to {`{ action: 'navigate', target: 'kitchen' }`}. The robot's navigation stack then executes this precise command.</p>
+      }
+    ],
+    takeaways: ["We chain multiple AI models to handle voice.", "LLMs act as translators between English and Robot Code.", "Structured output (JSON) is key."]
+  },
+  'c15': {
+    summary: "Conversational Robotics focuses on the social aspect. Robots need context, memory, and personality to interact naturally with humans.",
+    sections: [
+      {
+        title: "Context and Memory",
+        content: <p>A smart robot remembers that you like coffee in the morning. This requires a 'memory module' where previous interactions are stored and retrieved when relevant to the current conversation.</p>
+      },
+      {
+        title: "Social Cues",
+        content: <p>Robots must understand when to speak and when to listen. They use gaze direction (looking at you) and non-verbal sounds to signal that they are paying attention.</p>
+      }
+    ],
+    takeaways: ["Robots need long-term memory for personalization.", "Context makes conversations feel natural.", "Social cues build trust with humans."]
+  },
+
+  // Module 6: Capstone
+  'c16': {
+    summary: "The Capstone Project brings everything together. You will design and simulate a fully autonomous humanoid robot capable of navigating a warehouse.",
+    sections: [
+      {
+        title: "Project Architecture",
+        content: <p>The system combines a ROS 2 Nav2 stack for movement, a MoveIt 2 stack for arm manipulation, and a VLA model for decision making. All of these nodes run simultaneously on the robot's internal computer.</p>
+      },
+      {
+        title: "The Mission",
+        content: <p>Your robot must start at a charging dock, receive a voice command ('Fetch the red box'), navigate to the shelf, identify the box, pick it up, and deliver it to the packing station—all autonomously.</p>
+      }
+    ],
+    takeaways: ["Integration is the hardest part of robotics.", "The project combines Navigation, Manipulation, and AI.", "Success is defined by autonomy—no human remote control."]
+  },
+  'c17': {
+    summary: "The final frontier is transferring your code from the simulator to the real world. This describes the challenges of the 'Sim2Real' gap.",
+    sections: [
+      {
+        title: "The Reality Gap",
+        content: <p>In simulation, friction is constant and sensors are perfect. In reality, wheels slip, light changes, and sensors have noise. Code that works 100% in Sim might fail in Real Life.</p>
+      },
+      {
+        title: "Domain Randomization",
+        content: <p>To fix this, we use Domain Randomization. We train the robot in simulations where gravity, color, and friction change randomly. This forces the AI to learn robust strategies that work even when the world isn't perfect.</p>
+      }
+    ],
+    takeaways: ["Reality is messy and unpredictable.", "Sim2Real transfer requires robust code.", "Domain Randomization helps AI adapt to the real world."]
+  }
+};
 
 // --- Shared Components ---
 
@@ -384,6 +639,9 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
   const [expandedModules, setExpandedModules] = useState<string[]>(['m1']);
   const [isUrdu, setIsUrdu] = useState(false);
 
+  // Get content for the active chapter, or fallback to the first chapter if not found
+  const content = CHAPTER_CONTENT[activeChapter.id] || CHAPTER_CONTENT['c1'];
+
   const toggleModule = (modId: string) => {
     setExpandedModules(prev => 
       prev.includes(modId) ? prev.filter(id => id !== modId) : [...prev, modId]
@@ -479,39 +737,50 @@ const Dashboard: React.FC<{ user: User }> = ({ user }) => {
             {activeChapter.title}
           </h1>
 
-          {/* Placeholder Content */}
-          <div className={`space-y-6 text-gray-300 leading-relaxed text-lg ${isUrdu ? 'text-right' : ''}`} dir={isUrdu ? 'rtl' : 'ltr'}>
-            <p className={`flex items-center gap-2 text-brand-primary font-medium ${isUrdu ? 'flex-row-reverse' : ''}`}>
+          {/* Educational Content */}
+          <div className={`space-y-8 text-gray-300 leading-relaxed text-lg ${isUrdu ? 'text-right' : ''}`} dir={isUrdu ? 'rtl' : 'ltr'}>
+            
+            {/* Summary */}
+            <div className={`flex items-center gap-2 text-brand-primary font-medium ${isUrdu ? 'flex-row-reverse' : ''}`}>
               <Sparkles className="w-5 h-5" />
-              {isUrdu ? 'AI کا تیار کردہ خلاصہ' : 'AI Generated Summary'}
-            </p>
-            <div className="p-4 bg-brand-primary/10 border border-brand-primary/20 rounded-lg text-sm text-blue-200">
-              {isUrdu 
-                ? "اس باب میں، ہم نظام کو سمجھنے کے لیے درکار بنیادی تصورات کا جائزہ لیتے ہیں۔ اہم موضوعات میں آغاز، بنیادی لوپس، اور طبعی ہارڈویئر کے لیے حفاظتی پروٹوکول شامل ہیں۔"
-                : "In this chapter, we explore the fundamental concepts required to understand the system. Key topics include initialization, core loops, and safety protocols for physical hardware."
-              }
+              <span>{isUrdu ? 'AI کا تیار کردہ خلاصہ' : 'AI Generated Summary'}</span>
+            </div>
+            <div className="p-5 bg-brand-primary/10 border border-brand-primary/20 rounded-xl text-sm text-blue-100 font-medium">
+              {content.summary}
             </div>
 
             <hr className="border-white/10 my-8" />
 
-            <div className="h-64 flex flex-col items-center justify-center border-2 border-dashed border-white/10 rounded-xl bg-black/20 text-gray-500">
-               <Layers className="w-12 h-12 mb-4 opacity-20" />
-               <p>{isUrdu ? "باب کا مواد فی الحال مرتب کیا جا رہا ہے۔" : "Chapter content is currently being compiled."}</p>
-               <p className="text-sm opacity-50">{isUrdu ? "انٹرایکٹو سمولیشن ماڈیول لوڈ ہو رہا ہے..." : "Interactive simulation module loading..."}</p>
+            {/* Sections */}
+            {content.sections.map((section, idx) => (
+              <div key={idx} className="space-y-4">
+                <h3 className="text-2xl font-bold text-white flex items-center gap-3">
+                  <span className="text-brand-primary opacity-50">0{idx + 1}.</span> {section.title}
+                </h3>
+                <div className="text-gray-400 leading-relaxed space-y-4">
+                  {section.content}
+                </div>
+              </div>
+            ))}
+
+            <div className="h-8" />
+
+            {/* Takeaways */}
+            <div className="bg-black/30 rounded-xl p-6 border border-white/5">
+              <h4 className="text-lg font-bold text-brand-secondary mb-4 flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5" />
+                Key Takeaways
+              </h4>
+              <ul className="space-y-3">
+                {content.takeaways.map((point, i) => (
+                  <li key={i} className="flex items-start gap-3 text-sm text-gray-300">
+                    <div className="w-1.5 h-1.5 rounded-full bg-brand-secondary mt-2 shrink-0" />
+                    {point}
+                  </li>
+                ))}
+              </ul>
             </div>
             
-            <p>
-              {isUrdu 
-                ? "یہاں پر مزید تفصیلی مواد شامل کیا جائے گا۔ یہ پلیٹ فارم آپ کو روبوٹکس اور مصنوعی ذہانت کے جدید ترین اصولوں سے روشناس کرانے کے لیے ڈیزائن کیا گیا ہے۔"
-                : "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
-              }
-            </p>
-            <p>
-              {isUrdu
-                ? "جسمانی مصنوعی ذہانت اور ہیومنائیڈ روبوٹکس کا مستقبل اب آپ کے ہاتھ میں ہے۔ مشق اور نقلی ماڈلز کے ذریعے سیکھنا جاری رکھیں۔"
-                : "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
-              }
-            </p>
           </div>
         </GlassCard>
       </main>
